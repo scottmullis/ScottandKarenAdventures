@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scott and Karen's Excellent Adventures</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .hero-photo {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto 25px;
+            border: 6px solid white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            background-position: center;
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .about-section {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .about-section h2 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .about-content {
+            color: #555;
+            line-height: 1.8;
+            font-size: 1.1em;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .about-content p {
+            margin-bottom: 15px;
+        }
+        
+        .map-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .map-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .map-header h2 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+        
+        .map-header p {
+            color: #666;
+        }
+        
+        #map {
+            width: 100%;
+            height: 650px;
+            border-radius: 8px;
+            background: #f0f0f0;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .trip-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .trip-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .trip-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .trip-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 100%);
+        }
+        
+        .trip-content {
+            padding: 20px;
+        }
+        
+        .trip-title {
+            font-size: 1.4em;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .trip-date {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        
+        .trip-description {
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .view-album {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: opacity 0.3s ease;
+        }
+        
+        .view-album:hover {
+            opacity: 0.9;
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="hero-photo" id="heroPhoto"></div>
+            <h1>🌍 Scott and Karen's Excellent Adventures 🌍</h1>
+            <p class="subtitle">A collection of our travels around the world</p>
+        </header>
+        
+        <div class="about-section">
+            <h2>About Us</h2>
+            <div class="about-content">
+               <p>Welcome to our travel journal! We're Scott and Karen Mullis, and from our home in St. Louis, Missouri, we've spent years chasing adventures across the globe. Now in our 60s, we've explored 33 countries spanning 6 of the 7 continents, and we're not done yet! For us, travel isn't about checking boxes—it's about collecting experiences that enrich our lives and broaden our perspectives. Whether we're cruising through the Norwegian fjords, hiking in Shenandoah, or marveling at ancient ruins in Peru, each journey adds another chapter to our story. Through this page, we're excited to share our adventures with friends and family, and hopefully inspire others to embrace the joy of discovery that comes from exploring our incredible world.</p>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div class="map-header">
+                <h2>Our Travel Map</h2>
+                <p>Explore the places we've visited around the globe</p>
+            </div>
+            <div id="map"></div>
+        </div>
+        
+        <div class="grid" id="tripsGrid"></div>
+        
+        <footer>
+            <p>&copy; 2026 Scott and Karen | Made with ❤️ and wanderlust</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Your photo - place your photo in the same folder and update the filename
+        const heroPhotoUrl = 'IMG_0424.jpeg';
+        
+        // Set hero photo
+        document.getElementById('heroPhoto').style.backgroundImage = `url('${heroPhotoUrl}')`;
+        
+        const trips = [
+            {
+                title: "Caribbean Cruise",
+                date: "December 2025",
+                imageUrl: "IMG_1809.jpeg",
+                description: "Island hopping through the Lesser Antilles",
+                albumUrl: "https://www.icloud.com/sharedalbum/#B1eJT3YEwJKwVrz",
+                lat: 15.4,
+                lng: -61.3
+            },
+            {
+                title: "Egypt and the Nile",
+                date: "September 2025",
+                imageUrl: "IMG_0455.jpeg",
+                description: "Ancient pyramids, temples, and a Nile River cruise",
+                albumUrl: "#",
+                lat: 26.8206,
+                lng: 30.8025
+            },
+            {
+                title: "Shenandoah National Park with David",
+                date: "July 2025",
+                imageUrl: "IMG_0363.jpeg",
+                description: "Hiking and exploring Virginia's beautiful mountains",
+                albumUrl: "#",
+                lat: 38.2928,
+                lng: -78.6795
+            },
+            {
+                title: "Galapagos and Machu Picchu",
+                date: "June 2024",
+                imageUrl: "https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=600&h=400&fit=crop",
+                description: "Wildlife wonders and ancient Incan ruins",
+                albumUrl: "#",
+                locations: [
+                    { lat: -0.1807, lng: -78.4678, name: "Quito, Ecuador" },
+                    { lat: -0.9538, lng: -90.9656, name: "Galapagos Islands, Ecuador" },
+                    { lat: -13.1631, lng: -72.5450, name: "Machu Picchu, Peru" }
+                ]
+            },
+            {
+                title: "Antarctica",
+                date: "December 2023",
+                imageUrl: "DSC_2924.jpeg",
+                description: "The frozen continent and incredible wildlife",
+                albumUrl: "#",
+                lat: -64.8251,
+                lng: -62.8735
+            },
+            {
+                title: "Norway Northern Lights Cruise",
+                date: "February 2023",
+                imageUrl: "C4BF2655-D140-4DA3-B663-806BDBBA5360.jpeg",
+                description: "Chasing the Aurora Borealis in the Arctic",
+                albumUrl: "#",
+                lat: 69.6492,
+                lng: 18.9553
+            },
+             {
+                title: "Disney World",
+                date: "September 2022",
+                imageUrl: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&h=400&fit=crop",
+                description: "Magic and fun in Orlando, FL",
+                albumUrl: "#",
+                lat: 28.3852,
+                lng: -81.5639
+            },
+	    {
+                title: "Chile and Uruguay Cruise",
+                date: "December 2021",
+                imageUrl: "213DEC6F-0206-4CE1-8D30-41BAD602D3A7 .jpeg",
+                description: "South American adventure along the coast",
+                albumUrl: "#",
+                locations: [
+                    { lat: -33.4489, lng: -70.6693, name: "Santiago, Chile" },
+                    { lat: -55.9833, lng: -67.2667, name: "Cape Horn, Chile" },
+                    { lat: -34.9011, lng: -56.1645, name: "Montevideo, Uruguay" }
+                ]
+            },
+            {
+                title: "Indonesia",
+                date: "May 2018",
+                imageUrl: "Indo.jpeg?w=600&h=400&fit=crop",
+                description: "Temples, rice terraces, and island paradise in Bali",
+                albumUrl: "#",
+                lat: -8.3405,
+                lng: 115.0920
+            },
+            {
+                title: "Tenerife",
+                date: "July 2017",
+                imageUrl: "Tenerife.jpeg?w=600&h=400&fit=crop",
+                description: "Volcanic landscapes and beaches in the Canary Islands",
+                albumUrl: "#",
+                lat: 28.2916,
+                lng: -16.6291
+            },
+            {
+                title: "Danube River Cruise and Prague",
+                date: "May 2015",
+                imageUrl: "Buda.jpeg?w=600&h=400&fit=crop",
+                description: "Cruising through Europe's heart and historic cities",
+                albumUrl: "#",
+                lat: 48.2082,
+                lng: 16.3738
+            },
+            {
+                title: "China",
+                date: "October 2014",
+                imageUrl: "China.jpeg?w=600&h=400&fit=crop",
+                description: "The Great Wall, Chengdu, and ancient wonders",
+                albumUrl: "#",
+                lat: 30.5728,
+                lng: 104.0668
+            },
+            {
+                title: "Loire Valley and Paris",
+                date: "October 2013",
+                imageUrl: "Paris.jpeg?w=600&h=400&fit=crop",
+                description: "French castles, vineyards, and the City of Lights",
+                albumUrl: "#",
+                lat: 47.6034,
+                lng: 1.3313
+            },
+ 
+            {
+                title: "Seattle",
+                date: "March 2010",
+                imageUrl: "Seattle.jpeg?w=600&h=400&fit=crop",
+                description: "Space Needle, Pike Place, and Pacific Northwest beauty",
+                albumUrl: "#",
+                lat: 47.6062,
+                lng: -122.3321
+            },
+            {
+                title: "Western Caribbean Cruise",
+                date: "March 2009",
+                imageUrl: "https://images.unsplash.com/photo-1571406252241-db3e0275ea37?w=600&h=400&fit=crop",
+                description: "Island hopping in the warm Caribbean waters",
+                albumUrl: "#",
+                lat: 19.4326,
+                lng: -81.7334
+            },
+            {
+                title: "Italy",
+                date: "June 2008",
+                imageUrl: "https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?w=600&h=400&fit=crop",
+                description: "Northern Italy's art, culture, and cuisine",
+                albumUrl: "#",
+                lat: 45.4408,
+                lng: 12.3155
+            },
+            {
+                title: "San Diego Spring Break",
+                date: "March 2008",
+                imageUrl: "https://images.unsplash.com/photo-1542224566-6e85f2e6772f?w=600&h=400&fit=crop",
+                description: "Beaches, sun, and California fun",
+                albumUrl: "#",
+                lat: 32.7157,
+                lng: -117.1611
+            },
+            {
+                title: "Grand Canyon",
+                date: "March 2006",
+                imageUrl: "https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?w=600&h=400&fit=crop",
+                description: "Exploring Arizona's natural wonder",
+                albumUrl: "#",
+                lat: 36.1069,
+                lng: -112.1129
+            },
+            {
+                title: "London",
+                date: "March 2001",
+                imageUrl: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&h=400&fit=crop",
+                description: "Historic sights and English charm",
+                albumUrl: "#",
+                lat: 51.5074,
+                lng: -0.1278
+            }
+        ];
+        
+        const grid = document.getElementById('tripsGrid');
+        
+        // Initialize the map
+        const map = L.map('map', {
+            scrollWheelZoom: false
+        }).setView([10, 0], 2);
+        
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(map);
+        
+        // Custom pin icon
+        const pinIcon = L.divIcon({
+            className: 'custom-pin',
+            html: '<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 24px; height: 24px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 24]
+        });
+        
+        // Add markers and create cards
+        trips.forEach(trip => {
+            // Check if trip has multiple locations or single location
+            const locations = trip.locations || [{ lat: trip.lat, lng: trip.lng, name: trip.title }];
+            
+            // Add marker(s) to map
+            locations.forEach((location, index) => {
+                const marker = L.marker([location.lat, location.lng], { icon: pinIcon }).addTo(map);
+                const popupContent = locations.length > 1 
+                    ? `
+                        <div style="text-align: center;">
+                            <strong style="font-size: 1.1em;">${trip.title}</strong><br>
+                            <span style="color: #888; font-size: 0.9em;">${location.name}</span><br>
+                            <span style="color: #666;">${trip.date}</span><br>
+                            <a href="${trip.albumUrl}" target="_blank" style="color: #667eea; text-decoration: none;">View Album →</a>
+                        </div>
+                    `
+                    : `
+                        <div style="text-align: center;">
+                            <strong style="font-size: 1.1em;">${trip.title}</strong><br>
+                            <span style="color: #666;">${trip.date}</span><br>
+                            <a href="${trip.albumUrl}" target="_blank" style="color: #667eea; text-decoration: none;">View Album →</a>
+                        </div>
+                    `;
+                marker.bindPopup(popupContent);
+                
+                // Store first marker for card click
+                if (index === 0) {
+                    trip.firstMarker = marker;
+                }
+            });
+            
+            // Create trip card
+            const card = document.createElement('div');
+            card.className = 'trip-card';
+            card.innerHTML = `
+                <div class="trip-image" style="background-image: url('${trip.imageUrl}')"></div>
+                <div class="trip-content">
+                    <h2 class="trip-title">${trip.title}</h2>
+                    <div class="trip-date">${trip.date}</div>
+                    <p class="trip-description">${trip.description}</p>
+                    <a href="${trip.albumUrl}" class="view-album" target="_blank">View Album</a>
+                </div>
+            `;
+            
+            // Add click event to zoom to location on map
+            card.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('view-album')) {
+                    const firstLocation = locations[0];
+                    map.setView([firstLocation.lat, firstLocation.lng], 6);
+                    trip.firstMarker.openPopup();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+            
+            grid.appendChild(card);
+        });
+    </script>
+</body>
+</html>
